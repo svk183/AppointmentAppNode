@@ -14,8 +14,19 @@ const port = process.env.PORT || 8000;
 const cookieParser = require('cookie-parser');
 
 app.use(cookieParser());
-
-app.use(cors());
+app.use(cors({
+    credentials: true,
+    origin: "http://localhost:3000"
+}));
+app.use(function(req, res, next) {
+    res.header('Access-Control-Allow-Origin', 'http://localhost:3000');
+    res.header('Access-Control-Allow-Credentials', 'true');
+    res.header(
+        'Access-Control-Allow-Headers',
+        'Origin, X-Requested-With, Content-Type, Accept'
+    );
+    next();
+});
 
 app.use(express.json());
 
@@ -24,7 +35,8 @@ app.post('/login', async (req: Request, res: Response) => {
 
     if(user) {
         // Cookie available for 30 mins
-        res.cookie('authCode',JSON.stringify({userName: req.body.userName, isAdmin: user.isAdmin}), { maxAge: 1000 * 60 * 30, httpOnly: true });
+        res.cookie('authCode',JSON.stringify({userName: req.body.userName, isAdmin: user.isAdmin}), 
+        { maxAge: 1000 * 60 * 30, httpOnly: true, secure: true, sameSite:'none', path: '/' });
         res.status(200).send({message: 'Login Success'});
     } else {
         res.status(400).send({message: 'Invalid userName/password'});
